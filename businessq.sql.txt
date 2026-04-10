@@ -1,0 +1,54 @@
+-- Preguntas de negocio, código
+
+-- a) Top 10 de las películas que más se rentan
+SELECT
+    f.title,
+    count(*) AS total_rentas
+FROM sakila_gold.fact_rentals fr
+LEFT JOIN sakila_gold.dim_film f
+    ON fr.film_id = f.film_id
+GROUP BY f.title
+ORDER BY total_rentas DESC
+LIMIT 10;
+
+-- b) País donde más se rentan películas
+SELECT
+    c.country,
+    count(*) AS total_rentas
+FROM sakila_gold.fact_rentals fr
+LEFT JOIN sakila_gold.dim_customer c
+    ON fr.customer_id = c.customer_id
+GROUP BY c.country
+ORDER BY total_rentas DESC
+LIMIT 1;
+
+-- c) Lista con montos totales pagados por todos los clientes
+SELECT
+    c.customer_name,
+    sum(fr.amount) AS total_pagado
+FROM sakila_gold.fact_rentals fr
+LEFT JOIN sakila_gold.dim_customer c
+    ON fr.customer_id = c.customer_id
+GROUP BY c.customer_name
+ORDER BY total_pagado DESC;
+
+-- d) Actor que más rentas ha registrado
+SELECT
+    a.actor_name,
+    count(*) AS total_rentas
+FROM sakila_gold.fact_rentals fr
+LEFT JOIN sakila_gold.bridge_film_actor bfa
+    ON fr.film_id = bfa.film_id
+LEFT JOIN sakila_gold.dim_actor a
+    ON bfa.actor_id = a.actor_id
+GROUP BY a.actor_name
+ORDER BY total_rentas DESC
+LIMIT 1;
+
+-- e) Serie temporal de montos cobrados por mes
+SELECT
+    formatDateTime(payment_date, '%Y-%m') AS mes,
+    sum(amount) AS monto_total
+FROM sakila_gold.fact_rentals
+GROUP BY mes
+ORDER BY mes;

@@ -1,0 +1,103 @@
+-- Capa de Oro, Sakila project
+
+-- Tablas de domensiones
+
+CREATE TABLE IF NOT EXISTS sakila_gold.dim_customer
+ENGINE = MergeTree()
+ORDER BY customer_id AS
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    concat(c.first_name, ' ', c.last_name) AS customer_name,
+    c.email,
+    c.store_id,
+    a.address_id AS `a.address_id`,
+    ci.city_id AS `ci.city_id`,
+    co.country_id AS `co.country_id`,
+    co.country
+FROM sakila_bronze.customer c
+LEFT JOIN sakila_bronze.address a
+    ON c.address_id = a.address_id
+LEFT JOIN sakila_bronze.city ci
+    ON a.city_id = ci.city_id
+LEFT JOIN sakila_bronze.country co
+    ON ci.country_id = co.country_id;
+
+CREATE TABLE IF NOT EXISTS sakila_gold.dim_film
+ENGINE = MergeTree()
+ORDER BY film_id AS
+SELECT
+    film_id,
+    title,
+    description,
+    release_year,
+    language_id,
+    rental_duration,
+    rental_rate,
+    length,
+    replacement_cost,
+    rating
+FROM sakila_bronze.film;
+
+CREATE TABLE IF NOT EXISTS sakila_gold.dim_actor
+ENGINE = MergeTree()
+ORDER BY actor_id AS
+SELECT
+    actor_id,
+    first_name,
+    last_name,
+    concat(first_name, ' ', last_name) AS actor_name
+FROM sakila_bronze.actor;
+
+CREATE TABLE IF NOT EXISTS sakila_gold.bridge_film_actor
+ENGINE = MergeTree()
+ORDER BY (film_id, actor_id) AS
+SELECT
+    film_id,
+    actor_id
+FROM sakila_bronze.film_actor;
+
+CREATE TABLE IF NOT EXISTS sakila_gold.dim_date
+ENGINE = MergeTree()
+ORDER BY payment_date AS
+SELECT DISTINCT
+    payment_date,
+    toDate(payment_date) AS full_date,
+    toYear(payment_date) AS year,
+    toMonth(payment_date) AS month,
+    toDayOfMonth(payment_date) AS day,
+    formatDateTime(payment_date, '%Y-%m') AS year_month
+FROM sakila_silver.payments_enriched;
+
+
+-- TABLA DE HECHOS
+
+CREATE TABLE IF NOT EXISTS sakila_gold.fact_rentals
+ENGINE = MergeTree()
+ORDER BY rental_id AS
+SELECT
+    p.payment_id,
+    ifNull(p.`p.rental_id`, 0) AS rental_id,
+    p.payment_date,
+    toDate(p.payment_date) AS full_date,
+    p.amount,
+    p.`p.customer_id` AS customer_id,
+    p.`i.film_id` AS film_id,
+    c.store_id,
+    c.`co.country_id` AS country_id
+FROM sakila_silver.payments_enriched AS p
+LEFT JOIN sakila_gold.dim_customer AS c
+    ON p.`p.customer_id` = c.customer_id;
+
+
+-- Validación de datos del código
+
+SELECT count(*) FROM sakila_gold.dim_customer;
+SELECT count(*) FROM sakila_gold.dim_film;
+SELECT count(*) FROM sakila_gold.dim_actor;
+SELECT count(*) FROM sakila_gold.bridge_film_actor;
+SELECT count(*) FROM sakila_gold.dim_date;
+SELECT count(*) FROM sakila_gold.fact_rentals;
+
+SELECT * FROM sakila_gold.fact_rentals LIMIT 5;
