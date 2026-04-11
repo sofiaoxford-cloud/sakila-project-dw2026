@@ -8,7 +8,7 @@ Implementación de un Data Warehouse usando la base de datos Sakila.
 Se realizaron las capas Bronze, Silver y Gold en ClickHouse.
 
 ## Video de la presentación
-Ver video de explicación del proyecto
+El link del proyecto es el siguiente:
 https://www.youtube.com/watch?v=OJ0pA2vFZ78
 
 ## Estructura del proyecto
