@@ -7,6 +7,10 @@ Sakila Project Data Warehouses, contains SQL code, Bronze, Silver and Gold tiers
 Implementación de un Data Warehouse usando la base de datos Sakila. 
 Se realizaron las capas Bronze, Silver y Gold en ClickHouse.
 
+## Video de la presentación
+# Ver video de explicación del proyecto
+https://www.youtube.com/watch?v=OJ0pA2vFZ78
+
 ## Estructura del proyecto
 
 - `bronze.sql` → Creación de la capa Bronze (copia desde MySQL)
